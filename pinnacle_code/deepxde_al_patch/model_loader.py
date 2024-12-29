@@ -1,4 +1,5 @@
 from . import deepxde as dde
+import os
 
 from .train_set_loader import load_data
 from .models import generate_fourier_fnn, FNNWithLAAF, FNNWithGAAF
@@ -40,7 +41,7 @@ def construct_net(input_dim=2, hidden_layers=2, hidden_dim=64, output_dim=1,
 
 
 def construct_model(pde_name, pde_const, use_pdebench=False, inverse_problem=False, inverse_problem_guess=None,
-                    data_root='.', data_seed=0, data_aux_info=None, test_max_pts=400000,
+                    data_root=os.getcwd(), data_seed=0, data_aux_info=None, test_max_pts=400000,
                     num_domain=1000, num_boundary=1000, num_initial=5000, include_ic=True,
                     hidden_layers=2, hidden_dim=64, activation='tanh', initializer='Glorot uniform', 
                     arch=None, fourier_count=100, fourier_scale=1., 

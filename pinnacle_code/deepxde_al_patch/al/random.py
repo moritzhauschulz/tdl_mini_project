@@ -57,9 +57,18 @@ class RandomPointSelector(PointSelector):
         }
         for bc in self.data.bcs:
             if isinstance(bc, dde.icbc.boundary_conditions.PointSetBC):
-                idxs = jnp.array(np.random.choice(a=bc.points.shape[0], size=n_per_bc, replace=False))
-                xs = bc.points[idxs, :]
+                n_per_bc = min(n_per_bc, bc.points.shape[0])  # Ensure n_per_bc is not larger than the population
+                if n_per_bc > 0:
+                    idxs = jnp.array(np.random.choice(a=bc.points.shape[0], size=n_per_bc, replace=False))
+                    xs = bc.points[idxs, :]
+                else:
+                    xs = bc.points  # If no points to sample, use all points
             elif isinstance(bc, dde.icbc.initial_conditions.IC):
+        # for bc in self.data.bcs:
+        #     if isinstance(bc, dde.icbc.boundary_conditions.PointSetBC):
+        #         idxs = jnp.array(np.random.choice(a=bc.points.shape[0], size=n_per_bc, replace=False))
+        #         xs = bc.points[idxs, :]
+        #     elif isinstance(bc, dde.icbc.initial_conditions.IC):
                 xs = jnp.array(self.data.geom.random_initial_points(n_per_bc))
             else:
                 xs = jnp.array(self.data.geom.random_boundary_points(n_per_bc))

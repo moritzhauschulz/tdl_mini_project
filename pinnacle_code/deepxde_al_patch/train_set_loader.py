@@ -11,7 +11,7 @@ from .pdebench_pinn.train import *
 
 def load_data(pde_name, pde_const=tuple(), use_pdebench=False,
               inverse_problem=False, inverse_problem_guess=None,
-              data_root='.', data_seed=0, data_aux_info=None,
+              data_root=os.getcwd(), data_seed=0, data_aux_info=None,
               num_domain=1000, num_boundary=1000, num_initial=5000, include_ic=True,
               test_max_pts=400000):
     """
