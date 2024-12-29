@@ -129,8 +129,3 @@ dmypy.json
 .pyre/
 
 **.DS_Store
-
-
-/data/*
-*/ref/*
-/ref/*
