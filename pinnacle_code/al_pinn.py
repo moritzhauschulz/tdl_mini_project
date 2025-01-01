@@ -4,6 +4,8 @@ os.environ["OPENBLAS_NUM_THREADS"] = "8"
 os.environ["MKL_NUM_THREADS"] = "8"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "8" 
 os.environ["NUMEXPR_NUM_THREADS"] = "8" 
+os.environ["JAX_HOST_CALLBACK_LEGACY"] = "True"
+
 
 import sys
 import pickle as pkl
@@ -59,7 +61,7 @@ except RuntimeError:
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--results_dir', type=str, default='al_pinn_results')
-parser.add_argument('--pdebench_dir', type=str, default='~/pdebench')
+parser.add_argument('--pdebench_dir', type=str, default='./pdebench')
 
 parser.add_argument('--eqn', type=str)  # heat, diff
 parser.add_argument('--const', type=float, nargs="+", default=tuple())  # equation constants
@@ -80,6 +82,10 @@ parser.add_argument('--al_every', type=int, default=5000)
 parser.add_argument('--select_anchors_every', type=int, default=5000)
 parser.add_argument('--loss_w_bcs', type=float, default=1.0)
 parser.add_argument('--autoscale_loss_w_bcs', action=argparse.BooleanOptionalAction, default=False)
+parser.add_argument('--random_points_for_weights', action=argparse.BooleanOptionalAction, default=False)
+parser.add_argument('--autoscale_first', action=argparse.BooleanOptionalAction, default=False)
+
+
 parser.add_argument('--auto_al', action=argparse.BooleanOptionalAction, default=False)
 parser.add_argument('--anchor_budget', type=int, default=0)
 
@@ -340,7 +346,31 @@ else:
 
 """ OPTIMISER SETUP """
 
-if optim == 'adam':
+if optim == 'multiadam':
+    
+    if ('burgers' in eqn) or ('conv' in eqn):
+        optim_lr = 1e-4
+    else:
+        optim_lr = 1e-3
+        
+    optim_dict = dict(
+        optim_method='multiadam',
+        optim_lr=optim_lr,
+        train_steps=train_steps,
+        snapshot_every=1000,
+        al_every=al_every,
+        select_anchors_every=select_anchors_every,
+    )
+    
+    if train_steps > 100000:
+        steps = list(range(0, 100000, 10000)) + list(range(100000, train_steps + 1, 25000))
+        purge_every = 50000
+    else:
+        steps = list(range(0, train_steps + 1, 5000))
+        purge_every = 10000
+
+
+elif optim == 'adam':
     
     if ('burgers' in eqn) or ('conv' in eqn):
         optim_lr = 1e-4

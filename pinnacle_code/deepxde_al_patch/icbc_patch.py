@@ -1,5 +1,6 @@
 from functools import partial
 import os
+os.environ["JAX_HOST_CALLBACK_LEGACY"] = "True"
 import pickle as pkl
 from collections.abc import MutableMapping
 
@@ -12,6 +13,7 @@ from scipy.interpolate import NearestNDInterpolator
 import jax
 import jax.numpy as jnp
 import jax.experimental.host_callback as hcb
+from jax.experimental import io_callback
 import flax
 from flax import linen as nn
 import optax
@@ -19,7 +21,6 @@ import optax
 from . import deepxde as dde
 
 from .utils import pairwise_dist
-
 
 def get_corresponding_y(xs, x_pool, y_pool):
     pw = pairwise_dist(xs, x_pool)
@@ -108,7 +109,7 @@ def generate_residue(bc, net_apply, return_output_for_pointset=False):
 
             @jax.jit
             def get_y_fn(xs):
-                return hcb.call(interp, xs, result_shape=xs[:,0])
+                return io_callback(interp, xs[:,0], xs) #hcb.call(interp, xs, result_shape=xs[:,0])
             
             def residue(params, xs):
                 y_pred = net_apply(params, xs, training=False)[:, bc.component].reshape(-1)
