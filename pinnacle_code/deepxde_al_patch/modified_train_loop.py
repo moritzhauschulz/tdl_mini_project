@@ -1,3 +1,7 @@
+import os
+os.environ['JAX_ENABLE_X64'] = '0'  # Force float32
+os.environ['JAX_DEFAULT_MATMUL_PRECISION'] = 'float32'
+
 from functools import partial
 import os
 
@@ -57,8 +61,8 @@ class ModifiedTrainLoop:
         self.log_dir = log_dir
         self.net = model.net
         self.data = model.data
-        self.x_test = model.data.test_x
-        self.y_test = model.data.test_y
+        self.x_test = jnp.array(model.data.test_x, dtype=jnp.float32)
+        self.y_test = jnp.array(model.data.test_y, dtype=jnp.float32)
         
         self.point_selector_method = point_selector_method
         self.point_selector_args = point_selector_args
@@ -92,7 +96,7 @@ class ModifiedTrainLoop:
         
         check_budget = 200
         d = {
-            'res': jnp.array(self.data.geom.random_points(check_budget, random='pseudo')),
+            'res': jnp.array(self.data.geom.random_points(check_budget, random='pseudo'), dtype=jnp.float32),
             'bcs': [],
         }
         for i, bc in enumerate(self.data.bcs):
