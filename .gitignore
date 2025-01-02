@@ -133,6 +133,6 @@ dmypy.json
 
 
 **/pde_bench/**
-**/al_pinn_results/**
+# **/al_pinn_results/**
 **.hdf5
 **.mph
