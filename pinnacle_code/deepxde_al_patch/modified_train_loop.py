@@ -1,4 +1,11 @@
 import os
+import psutil
+
+# Get total available memory and set JAX to use 90% of it
+total_memory = psutil.virtual_memory().available
+memory_fraction = 0.9  # Use 90% of available memory
+os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = f'{memory_fraction}'
+os.environ['XLA_PYTHON_CLIENT_ALLOCATOR'] = 'platform'
 os.environ['JAX_ENABLE_X64'] = '0'  # Force float32
 os.environ['JAX_DEFAULT_MATMUL_PRECISION'] = 'float32'
 
