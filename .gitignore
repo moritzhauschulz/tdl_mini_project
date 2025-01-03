@@ -136,3 +136,4 @@ dmypy.json
 # **/al_pinn_results/**
 **.hdf5
 **.mph
+.log
