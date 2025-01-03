@@ -1,7 +1,17 @@
 #!/bin/bash
 
-current_dir=$( dirname -- "$0"; )
-echo $current_dir
+# Get the current directory of the script
+current_dir=$(dirname -- "$0")
+
+# Generate a timestamped log file name
+timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
+log_file="${current_dir}/script_${timestamp}.log"
+
+# Redirect output and error to the timestamped log file
+exec > >(tee -a "$log_file") 2>&1
+
+# Log the current directory
+echo "Current directory: $current_dir"
 
 # COMMAND
 # al_pinn.sh {tests to run} {methods to run} {repeats} {other args for python script}
@@ -44,7 +54,7 @@ for j in $3; do
 
                 pdeargs="$pde $alg $loss $4"
 
-                python ${current_dir}/al_pinn.py $pdeargs
+                python -u ${current_dir}/al_pinn.py $pdeargs
                 
             done
 

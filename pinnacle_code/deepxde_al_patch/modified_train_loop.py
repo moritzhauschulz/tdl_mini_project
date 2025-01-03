@@ -1,13 +1,34 @@
 import os
 import psutil
 
-# Get total available memory and set JAX to use 90% of it
-total_memory = psutil.virtual_memory().available
-memory_fraction = 0.9  # Use 90% of available memory
-os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = f'{memory_fraction}'
-os.environ['XLA_PYTHON_CLIENT_ALLOCATOR'] = 'platform'
+
+import os
+
+# Add these before any other imports:
+os.environ['JAX_PLATFORMS'] = 'cpu'  # Force CPU backend
+os.environ['JAX_DISABLE_JIT'] = '1'  # Completely disable JIT compilation
+os.environ['XLA_FLAGS'] = '--xla_cpu_multi_thread_eigen=false --xla_force_host_platform_device_count=1'
+
+import gc
+from functools import partial
+
+os.environ["JAX_HOST_CALLBACK_LEGACY"] = "True"
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
+os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.75"  # Use only 50% of available memory
 os.environ['JAX_ENABLE_X64'] = '0'  # Force float32
 os.environ['JAX_DEFAULT_MATMUL_PRECISION'] = 'float32'
+
+# # Get total available memory and set JAX to use 90% of it
+# total_memory = psutil.virtual_memory().available
+# memory_fraction = 0.9  # Use 90% of available memory
+# os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = f'{memory_fraction}'
+# os.environ['XLA_PYTHON_CLIENT_ALLOCATOR'] = 'platform'
+# os.environ['JAX_ENABLE_X64'] = '0'  # Force float32
+# os.environ['JAX_DEFAULT_MATMUL_PRECISION'] = 'float32'
+# os.environ["XLA_FLAGS"] = "--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=1" #this might reduce crashes due to memory allocation
+# print(f'set xla flags...')
+
 
 from functools import partial
 import os
@@ -463,6 +484,11 @@ class ModifiedTrainLoop:
         return solver
         
     def _record(self, writer: SummaryWriter = None, al_step = False):
+
+        # Clear JAX compilation cache periodically
+        if self.current_train_step % 1000 == 0:
+            jax.clear_caches()
+            gc.collect()
         
         params = self.current_params
         self.loss_steps.append(self.current_train_step)
@@ -502,6 +528,9 @@ class ModifiedTrainLoop:
             'loss_w_pde': self.loss_w_pde,
             'loss_w_anc': self.loss_w_anc,
         }
+
+        # Force garbage collection after recording
+        gc.collect()
 
         print(f'Step {self.loss_steps[-1]: 6d} : train_loss = {self.loss_train[-1]:.8f}, '
               f'test_res = {self.test_res[-1]:.8f}, test_err = {self.test_err[-1]:.8f}'
@@ -812,6 +841,10 @@ class ModifiedTrainLoop:
                 
             end = time.time()
             print(f"Time required for last {self.al_every} steps = {end - start:.6f} seconds")
+
+            # Clean up after each round
+            gc.collect()
+            jax.clear_caches()
                                                 
         if writer is not None:
             writer.close()

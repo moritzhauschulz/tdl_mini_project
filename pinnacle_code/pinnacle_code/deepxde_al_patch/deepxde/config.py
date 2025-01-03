@@ -19,7 +19,7 @@ xla_jit = False
 if backend_name in ["tensorflow.compat.v1", "tensorflow"]:
     xla_jit = bkd.is_gpu_available()
 elif backend_name == "jax":
-    xla_jit = True
+    xla_jit = False
 if xla_jit:
     print("Enable just-in-time compilation with XLA.\n")
 

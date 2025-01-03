@@ -42,7 +42,7 @@ class EigenvaluePointSelector(NTKBasedAL):
                  use_anc_in_train=True,
                  anc_idx=None,
                  dupl_pts_res: bool = True, # add anchor points and BCs candidates into res candidates
-                 memory: bool = True, # remember old samples and add new ones to them
+                 memory: bool = False, # remember old samples and add new ones to them
                  use_random_base = True, # use random base when computing the reference NTK
                 #  mem_pts_ratio: float = 1, # num points to remember from past iterations. If enforce_budget is True, then this will be dyanmically selected when budget is hit.
                  include_anc_cap: bool = False, # include anchor points in the pool
